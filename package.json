@@ -1,0 +1,14 @@
+{
+  "name": "usmap",
+  "version": "1.0.0",
+  "description": "A map of the us using D3",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Bruce MacDonald",
+  "license": "MIT",
+  "dependencies": {
+    "topojson": "^1.6.26"
+  }
+}
