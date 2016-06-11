@@ -1,78 +1,117 @@
-<html>
-    <head>
-        <script src="d3.v3.js" charset="utf-8"></script>
-        <style>
-        </style>
-    </head>
-    <body>
-        <script>
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>SANKEY Experiment</title>
+<style>
+.node rect {
+  cursor: move;
+  fill-opacity: .9;
+  shape-rendering: crispEdges;
+}
+.node text {
+  pointer-events: none;
+  text-shadow: 0 1px 0 #fff;
+}
+.link {
+  fill: none;
+  stroke: #000;
+  stroke-opacity: .2;
+}
+.link:hover {
+  stroke-opacity: .5;
+}
+</style>
+<body>
 
-            //Width and height
-            var w = 500;
-            var h = 300;
+<p id="chart">
 
-            //Define map projection
-            var projection = d3.geo.albersUsa()
-                                   .translate([w/2, h/2])
-                                   .scale([500]);
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script src="sankey.js"></script>
+<script>
+	
+var units = "Widgets";
+var margin = {top: 10, right: 10, bottom: 10, left: 10},
+    width = 1100 - margin.left - margin.right,
+    height = 300 - margin.top - margin.bottom;
+var formatNumber = d3.format(",.0f"),    // zero decimal places
+    format = function(d) { return formatNumber(d) + " " + units; },
+    color = d3.scale.category20();
+// append the svg canvas to the page
+var svg = d3.select("#chart").append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform", 
+          "translate(" + margin.left + "," + margin.top + ")");
+// Set the sankey diagram properties
+var sankey = d3.sankey()
+    .nodeWidth(16)
+    .nodePadding(20)
+    .size([width, height]);
+var path = sankey.link();
+// load the data
+d3.json("sankeydata.json", function(error, graph) {
+  sankey
+      .nodes(graph.nodes)
+      .links(graph.links)
+      .layout(32);
+// add in the links
+  var link = svg.append("g").selectAll(".link")
+      .data(graph.links)
+    .enter().append("path")
+      .attr("class", "link")
+      .attr("d", path)
+      .style("stroke-width", function(d) { return Math.max(1, d.dy); })
+      .sort(function(a, b) { return b.dy - a.dy; });
+// add the link titles
+  link.append("title")
+        .text(function(d) {
+    		return d.source.name + " → " + 
+                d.target.name + "\n" + format(d.value); });
+// add in the nodes
+  var node = svg.append("g").selectAll(".node")
+      .data(graph.nodes)
+    .enter().append("g")
+      .attr("class", "node")
+      .attr("transform", function(d) { 
+		  return "translate(" + d.x + "," + d.y + ")"; })
+    .call(d3.behavior.drag()
+      .origin(function(d) { return d; })
+      .on("dragstart", function() { 
+		  this.parentNode.appendChild(this); })
+      .on("drag", dragmove));
+// add the rectangles for the nodes
+  node.append("rect")
+      .attr("height", function(d) { return d.dy; })
+      .attr("width", sankey.nodeWidth())
+      .style("fill", function(d) { 
+		  return d.color = color(d.name.replace(/ .*/, "")); })
+      .style("stroke", function(d) { 
+		  return d3.rgb(d.color).darker(2); })
+    .append("title")
+      .text(function(d) { 
+		  return d.name + "\n" + format(d.value); });
+// add in the title for the nodes
+  node.append("text")
+      .attr("x", -6)
+      .attr("y", function(d) { return d.dy / 2; })
+      .attr("dy", ".35em")
+      .attr("text-anchor", "end")
+      .attr("transform", null)
+      .text(function(d) { return d.name; })
+    .filter(function(d) { return d.x < width / 2; })
+      .attr("x", 6 + sankey.nodeWidth())
+      .attr("text-anchor", "start");
+// the function for moving the nodes
+  function dragmove(d) {
+    d3.select(this).attr("transform", 
+        "translate(" + d.x + "," + (
+                d.y = Math.max(0, Math.min(height - d.dy, d3.event.y))
+            ) + ")");
+    sankey.relayout();
+    link.attr("d", path);
+  }
+});
+</script>
 
-            //Define path generator
-            var path = d3.geo.path()
-                             .projection(projection);
-
-            //Create SVG element
-            var svg = d3.select("body").append("svg").attr({width:w, height: h});
-            
-            var color = d3.scale.linear()
-                            .range(['rgb(8,81,155)','rgb(8,81,156)','rgb(8,81,157)','rgb(8,81,158)','rgb(8,81,159)','rgb(8,81,160)']);
-            /* var color = d3.scale.linear()
-                            .range(['rgb(239,243,255)','rgb(198,219,239)','rgb(158,202,225)','rgb(107,174,214)','rgb(49,130,189)','rgb(8,81,156)']); */
-        d3.csv("state-sales.csv", function(data){
-            
-            color.domain([
-                0, d3.max(data, function(d) {return d.sales;})
-            ]);
-        
-
-            //Load in GeoJSON data
-            d3.json("us.json", function(json) {
-                
-                for(var i=0; i<data.length; i++) {
-                    var salesState = data[i].state;
-                    
-                    var salesVal = parseFloat(data[i].sales);
-                    
-                    for(var j=0; j<json.features.length; j++){
-                        // the line below is critical that the var and the feature are EXACT - case-sensitive
-                        var usState = json.features[j].properties.NAME;
-                        
-                        if (salesState === usState){
-                            json.features[j].properties.value = salesVal;
-                            
-                            break;
-                        }
-                    }
-                }
-                
-                //Bind data and create one path per GeoJSON feature
-                svg.selectAll("path")
-                   .data(json.features)
-                   .enter()
-                   .append("path")
-                   .attr("d", path)
-                   .style("fill", function(d){
-                    
-                        var value = d.properties.value;
-                    
-                        if (value) {
-                            return color(value);
-                        } else {
-                            return "#999999";
-                        }
-                });
-        
-            });
-        })
-        </script>
-    </body>
+</body>
 </html>

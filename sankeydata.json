@@ -1,0 +1,42 @@
+{
+    "nodes":[
+        {"node":0, "name":"run_0"},
+        {"node":1, "name":"std01.f_company"},
+        {"node":2, "name":"mva.company"},
+        {"node":3, "name":"mva.universe"},
+        {"node":4, "name":"run_1a"},
+        {"node":5, "name":"run_1b"},
+        {"node":6, "name":"run_2"},
+        {"node":7, "name":"run_3"},
+        {"node":8, "name":"run_4"},
+        {"node":9, "name":"run_5"},
+        {"node":10, "name":"run_6"},
+        {"node":11, "name":"run_7"},
+        {"node":12, "name":"run_8"},
+        {"node":13, "name":"run_9"},
+        {"node":14, "name":"run_10"},
+        {"node":15, "name":"run_11"},
+        {"node":16, "name":"run_12"},
+        {"node":17, "name":"run_13"},
+        {"node":18, "name":"run_14"}
+    ],
+    "links":[
+        {"source":0, "target":2, "value":2},
+        {"source":1, "target":2, "value":2},
+        {"source":1, "target":3, "value":2},
+        {"source":0, "target":4, "value":2},
+        {"source":2, "target":3, "value":2},
+        {"source":2, "target":4, "value":2},
+        {"source":3, "target":4, "value":4},
+        {"source":4, "target":5, "value":1},
+        {"source":5, "target":6, "value":6},
+        {"source":6, "target":7, "value":6},
+        {"source":7, "target":8, "value":6},
+        {"source":8, "target":9, "value":6},
+        {"source":9, "target":10, "value":6},
+        {"source":10, "target":11, "value":6},
+        {"source":11, "target":12, "value":6},
+        {"source":12, "target":13, "value":6},
+        {"source":13, "target":14, "value":6}
+    ]
+}
