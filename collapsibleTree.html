@@ -1,6 +1,18 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
 <style>
+.menu {
+    border: 1px solid black;
+    background-color: grey;
+    display: none;
+    position: relative;
+}
+
+.menu,
+.menu li {
+    padding: 0px;
+    margin: 0px;
+}
 
 .node {
   cursor: pointer;
@@ -13,7 +25,7 @@
 }
 
 .node text {
-  font: 10px sans-serif;
+  font: 11px sans-serif;
 }
 
 .link {
@@ -24,12 +36,39 @@
 
 </style>
 <body>
-    <h1> d3 Collapsible Tree </h1>
-    <h4> Enterprise Capabilities </h4>
+    
+    <h4> Enterprise Capabilities (<em>a d3 collapsible tree</em>)</h4>
+    <div class="tooltip">
+    </div>
+    <svg></svg>
+    <div id="caplist">
+        <table>
+            <thead>
+                <tr>
+                    <td>Name</td>
+                    <td>Level</td>
+                    <td>Description</td>
+                    <td>Outcome</td>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+    <ul id="context-menu" class="menu">
+        <li class="capability" id="level-select-1">Have</li>
+        <li class="capability" id="level-select-2">Improve</li>
+        <li class="capability" id="level-select-3">Need</li>
+        <li class="capability" id="level-select-4">N/A</li>
+    </ul>
 <script src="//d3js.org/d3.v3.min.js"></script>
 <script>
 
-var margin = {top: 20, right: 80, bottom: 20, left: 120},
+var treeTooltip = d3.select("body").append("div")
+    .attr("class", "tooltip")
+    .style("opacity", 0);
+
+var margin = {top: 80, right: 80, bottom: 20, left: 120},
     // width = 960 - margin.right - margin.left,
     width = 1200 - margin.right - margin.left,
     height = 800 - margin.top - margin.bottom;
@@ -88,7 +127,29 @@ function update(source) {
   var nodeEnter = node.enter().append("g")
       .attr("class", "node")
       .attr("transform", function(d) { return "translate(" + source.y0 + "," + source.x0 + ")"; })
-      .on("click", click);
+      .on("click", click)
+      .on("contextmenu", function (d, i) {
+          d3.event.preventDefault();
+          clickRight(d);
+      })
+      .on("mouseover", function(d) {
+          treeTooltip.transition()
+            .duration(500)
+            .style("opacity", .9);
+
+        var tip = "Name: " + d.name + "<br/>";
+        var tip = tip + "Level: " + d.level + "<br/>";
+        var tip = tip + "Description: " + d.description + "<br/>";
+
+        treeTooltip.html(tip)
+            .style("left", (d3.event.pageX) + "px")
+            .style("top", (d3.event.pageY) + "px");
+      })
+      .on("mouseout", function(d) {
+          treeTooltip.transition()
+            .duration(500)
+            .style("opacity", 0);
+      });
 
   nodeEnter.append("circle")
       .attr("r", 1e-6)
@@ -107,7 +168,7 @@ function update(source) {
       .attr("transform", function(d) { return "translate(" + d.y + "," + d.x + ")"; });
 
   nodeUpdate.select("circle")
-      .attr("r", 4.5)
+      .attr("r", 9)
       .style("fill", function(d) { return d._children ? "lightsteelblue" : "#fff"; });
 
   nodeUpdate.select("text")
@@ -160,14 +221,36 @@ function update(source) {
 
 // Toggle children on click.
 function click(d) {
+    
   if (d.children) {
+      console.log("d3 Click Contract: " + d.name);
     d._children = d.children;
     d.children = null;
   } else {
+      console.log("d3 Click Expand!" + d.name);
     d.children = d._children;
     d._children = null;
   }
   update(d);
 }
 
+function clickRight(d) {
+    console.log("Right-clicked on: " + d.name);
+    if (d.level>2) {
+        d3.select('#caplist')
+            .append("<tr><td>" + d.name + "</td>" + "<td>" + d.level + "</td>" + "<td>" + d.description + "</td>" + "<td>N/A</td>" + "</tr>");
+    }
+    /*var position = [0, 0];
+    position = d3.mouse(this);
+    d3.select('#context-menu')
+        .style('position', 'absolute')
+        .style('left', position[0] + "px")
+        .style('top', position[1] + "px")
+        .style('display', 'inline-block')
+        .on('mouseleave', function() {
+            d3.select('#context-menu').style('display', 'none');
+        }); */
+}
+
 </script>
+</body>
